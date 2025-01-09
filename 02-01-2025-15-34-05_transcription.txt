@@ -1,0 +1,14 @@
+[15:10:00] [Speaker 1]: Hello everyone, aaj ki meeting start karte hain. Kya sab apne updates share kar sakte hain?
+[15:10:15] [Speaker 2]: Haan, maine database setup complete kar diya hai aur user profiles ka basic structure ready hai.
+[15:10:30] [Speaker 3]: That’s great! Kya tumne backup system ka plan bhi ready kiya hai?
+[15:10:45] [Speaker 2]: Abhi nahi, par uska bhi kaam start karne wala hoon.
+[15:11:00] [Speaker 4]: Maine front-end ke forms design kar liye hain. Bas validation add karna baaki hai.
+[15:11:15] [Speaker 1]: Forms ka layout check kar liya kya? User-friendly toh hai na?
+[15:11:30] [Speaker 4]: Haan bilkul, feedback ke liye design team ko bhej diya hai.
+[15:11:45] [Speaker 3]: By the way, payment gateway integration ka kya status hai?
+[15:12:00] [Speaker 2]: Uska basic integration ho gaya hai, par testing baaki hai.
+[15:12:15] [Speaker 1]: Okay, testing ke liye ek dedicated session plan karenge. Aur kuch?
+[15:12:30] [Speaker 3]: Nahi, that’s all from my side.
+[15:12:45] [Speaker 4]: Same here, mujhe bhi koi additional points nahi hain.
+[15:13:00] [Speaker 1]: Alright, good progress everyone. Let’s wrap up. Meeting khatam.
+
