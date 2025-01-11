@@ -1,0 +1,22 @@
+
+
+
+Key Steps to Train and Use an LLM for MOM Generation:
+Dataset Preparation:
+
+Collect and preprocess a dataset of transcripts along with corresponding MOM documents. This serves as the training data.
+Ensure the dataset captures diverse meeting types, formats, and writing styles.
+Model Selection:
+
+Choose a pre-trained LLM, such as OpenAI's GPT, Google's T5, or any fine-tunable LLM like BERT-based models.
+Fine-tune the model on your dataset for the MOM generation task.
+Fine-Tuning the LLM:
+
+Split your data into training and validation sets.
+Train the model to learn patterns between the input transcript and the output MOM structure.
+Post-Processing:
+
+Implement post-processing to structure the generated MOM into sections like agenda, discussion points, suggestions, and conclusions.
+Deployment:
+
+Set up a pipeline to input raw meeting transcripts and generate structured MOM automatically.

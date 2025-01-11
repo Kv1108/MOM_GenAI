@@ -1,0 +1,35 @@
+[15:10:00] [Speaker 1]: Hello everyone, aaj ki meeting start karte hain. Kya sab apne updates share kar sakte hain?
+
+[15:10:15] [Speaker 2]: Haan, maine database setup complete kar diya hai aur user profiles ka basic structure ready hai.
+
+[15:10:30] [Speaker 3]: That’s great! Kya tumne backup system ka plan bhi ready kiya hai?
+
+[15:10:45] [Speaker 4]: Haan, backup system ke liye cloud storage ka use karne ka plan hai. Main aaj ispar kaam shuru karunga.
+
+[15:11:00] [Speaker 1]: Perfect! Ab hum club ke upcoming events par baat karte hain. Kya sab ko koi ideas hain?
+
+[15:11:15] [Speaker 2]: Mujhe lagta hai ki hum debates aur heritage trips ke ideas ko explore kar sakte hain.
+
+[15:11:30] [Speaker 3]: Haan, maine bhi kuch ideas socha tha. We could also organize workshops on traditional arts or heritage.
+
+[15:11:45] [Speaker 1]: Great suggestions! Hum 12th August ko ek debate competition rakhne ka plan kar rahe hain. Kis topic pe debate karenge?
+
+[15:12:00] [Speaker 4]: Hum heritage ko preserve karne ke tareekon par debate kar sakte hain, jaise 'Should heritage sites be restricted to tourists?'
+
+[15:12:15] [Speaker 2]: Achha idea! Mein aur ek topic sochti hoon: 'Impact of modernization on Indian heritage.'
+
+[15:12:30] [Speaker 1]: Perfect! Har kisi ko apna topic brainstorm karna hai. Ab hum social media account ke baare mein baat karte hain.
+
+[15:12:45] [Speaker 3]: Haan, social media presence ko strong banana zaroori hai. Hum Instagram aur Facebook pe club ka account bana sakte hain.
+
+[15:13:00] [Speaker 4]: Hum content calendar bhi create kar sakte hain taaki regular updates post ho sake.
+
+[15:13:15] [Speaker 1]: Absolutely. Ab hum event aur responsibilities ko finalize karte hain. Offline meeting kal 7th August ko rakhte hain final proposal ke liye.
+
+[15:13:30] [Speaker 2]: Main social media plan ready kar rahi hoon aur event roles ko divide karne mein madad karunga.
+
+[15:13:45] [Speaker 1]: Perfect, kaam timely complete hona chahiye. Debate topic brainstorming aaj tak ho jana chahiye. Aur by 15th August, har kisi ko atleast do events brainstorm kar lene chahiye.
+
+[15:14:00] [Speaker 4]: Understood, sab tasks complete karenge.
+
+[15:14:15] [Speaker 1]: Thanks everyone! Meeting ko yahi end karte hain.

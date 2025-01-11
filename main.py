@@ -1,71 +1,102 @@
 from docx import Document
-from datetime import datetime, timedelta
-import re
+from datasets import Dataset
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments
 
-# Function to parse the text file
-def parse_text_file(file_path):
-    speakers = set()
-    discussion_points = []
-    start_time, end_time = None, None
+# Step 1: Extract Text from the MoM .docx file
+def extract_text_from_docx(docx_file):
+    document = Document(docx_file)
+    full_text = []
+    for para in document.paragraphs:
+        full_text.append(para.text)
+    return "\n".join(full_text)
 
-    with open(file_path, 'r', encoding='utf-8') as file:
-        for line in file:
-            match = re.match(r'\[(\d{2}:\d{2}:\d{2})\] \[([^\]]+)\]: (.+)', line)
-            if match:
-                time_str, speaker, message = match.groups()
-                time = datetime.strptime(time_str, "%H:%M:%S")
-                speakers.add(speaker)
+# Step 2: Load and Format Conversation Data for Training
+def create_training_data(conversation_file, mom_text):
+    with open(conversation_file, 'r', encoding='utf-8') as file:
+        conversation = file.readlines()
+    
+    # Format conversation and MOM into input-output pairs
+    training_data = []
+    for line in conversation:
+        training_data.append({
+            'text': line.strip() + '\n' + mom_text  # Combining conversation and MOM text
+        })
+    return training_data
 
-                # Extract general discussion points
-                discussion_points.append(f"{speaker} discussed: {message.strip()}")
+# Step 3: Tokenizing the Dataset
+def tokenize_function(examples):
+    return tokenizer(examples['text'], padding="max_length", truncation=True)
 
-                # Capture start and end time
-                if not start_time:
-                    start_time = time
-                end_time = time
+# Step 4: Train the Model
+def train_model(training_data):
+    # Convert to Hugging Face Dataset
+    dataset = Dataset.from_dict({'text': [item['text'] for item in training_data]})
 
-    return start_time, end_time, speakers, discussion_points
+    # Load GPT-2 tokenizer and model
+    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    model = GPT2LMHeadModel.from_pretrained('gpt2')
 
-# Function to create the MOM document
-def create_mom(file_path, output_file, title, date):
-    start_time, end_time, speakers, discussion_points = parse_text_file(file_path)
-    duration = str(end_time - start_time)
-    no_of_people = len(speakers)
+    # Tokenize the dataset
+    tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
+    # Setup Training Arguments
+    training_args = TrainingArguments(
+        output_dir='./results',  # Output directory for the model
+        num_train_epochs=3,      # Number of epochs to train
+        per_device_train_batch_size=2,  # Training batch size
+        per_device_eval_batch_size=2,   # Evaluation batch size
+        logging_dir='./logs',    # Directory for logs
+        save_steps=1000,         # Save the model every 1000 steps
+    )
+
+    # Initialize Trainer
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized_dataset,
+    )
+
+    # Train the model
+    trainer.train()
+
+    return model, tokenizer
+
+# Step 5: Generate MOM for New Conversation
+def generate_mom_for_new_conversation(model, tokenizer, conversation_text):
+    inputs = tokenizer.encode(conversation_text, return_tensors="pt")
+    outputs = model.generate(inputs, max_length=500, num_return_sequences=1)
+    generated_mom = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return generated_mom
+
+# Step 6: Save the Generated MOM as a .docx File
+def save_mom_to_docx(mom_content, output_file):
     document = Document()
-    document.add_heading(title, level=1)
-
-    # Add meeting details
-    document.add_paragraph(f"Meeting Date: {date}")
-    document.add_paragraph(f"Meeting Time: {start_time.strftime('%H:%M:%S')} to {end_time.strftime('%H:%M:%S')}")
-    document.add_paragraph(f"Meeting Duration: {duration}")
-    document.add_paragraph(f"No. of People Attended: {no_of_people}")
-
-    # Agenda Section
-    document.add_heading('Agenda Topics', level=2)
-    document.add_paragraph("1. Team Updates\n2. Discussion on Current Issues\n3. Suggestions and Improvements", style='List Number')
-
-    # General Discussion Section
-    document.add_heading('General Discussion Points', level=2)
-    for point in discussion_points:
-        document.add_paragraph(point, style='List Bullet')
-
-    # Suggestions Section
-    document.add_heading('Suggestions', level=2)
-    document.add_paragraph("1. Ensure better communication between team members.\n2. Schedule weekly check-ins to track progress.\n3. Assign specific roles for upcoming tasks.", style='List Number')
-
-    # Remarks Section
-    document.add_heading('Remarks', level=2)
-    document.add_paragraph("The meeting concluded successfully with actionable insights.")
-
-    # Save the document
+    document.add_heading('Minutes of Meeting', level=1)
+    document.add_paragraph(mom_content)
     document.save(output_file)
-    print(f"MOM generated successfully: {output_file}")
+    print(f"MOM saved successfully as {output_file}")
 
 # Main execution
-file_path = '02-01-2025-15-34-05_transcription.txt'  # Input text file
-output_file = 'MOM_Summary.docx'                    # Output Word document
-title = 'Team Meeting: Project Summary'             # Meeting title
-date = '2025-01-02'                                 # Meeting date
+if __name__ == "__main__":
+    conversation_file = '02-01-2025-15-34-05_transcription.txt'  # Path to your new conversation file
+    mom_file = 'MoM 1.docx'  # Path to your MoM document
 
-create_mom(file_path, output_file, title, date)
+    # Extract MOM text from MoM 1.docx
+    mom_text = extract_text_from_docx(mom_file)
+
+    # Create the training dataset
+    training_data = create_training_data(conversation_file, mom_text)
+
+    # Train the model
+    model, tokenizer = train_model(training_data)
+
+    # Read the conversation from the new conversation file
+    with open(conversation_file, 'r', encoding='utf-8') as file:
+        new_conversation = file.read()
+
+    # Generate the MOM
+    generated_mom = generate_mom_for_new_conversation(model, tokenizer, new_conversation)
+    print("\nGenerated MOM:\n", generated_mom)
+
+    # Save the generated MOM to a Word document
+    save_mom_to_docx(generated_mom, "Generated_MOM.docx")
