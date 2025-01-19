@@ -1,102 +1,99 @@
 from docx import Document
-from datasets import Dataset
-from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments
+import re
 
-# Step 1: Extract Text from the MoM .docx file
-def extract_text_from_docx(docx_file):
-    document = Document(docx_file)
-    full_text = []
-    for para in document.paragraphs:
-        full_text.append(para.text)
-    return "\n".join(full_text)
+# Step 1: Read and parse the voice-separated .txt file
+def parse_conversation_file(file_path):
+    attendees = set()
+    discussion_points = []
+    agenda_items = []
+    start_time, end_time = None, None
 
-# Step 2: Load and Format Conversation Data for Training
-def create_training_data(conversation_file, mom_text):
-    with open(conversation_file, 'r', encoding='utf-8') as file:
-        conversation = file.readlines()
-    
-    # Format conversation and MOM into input-output pairs
-    training_data = []
-    for line in conversation:
-        training_data.append({
-            'text': line.strip() + '\n' + mom_text  # Combining conversation and MOM text
-        })
-    return training_data
+    with open(file_path, 'r', encoding='utf-8') as file:
+        for line in file:
+            match = re.match(r'\[(\d{2}:\d{2}:\d{2})\] \[([^\]]+)\]: (.+)', line)
+            if match:
+                time_str, speaker, message = match.groups()
+                attendees.add(speaker)
 
-# Step 3: Tokenizing the Dataset
-def tokenize_function(examples):
-    return tokenizer(examples['text'], padding="max_length", truncation=True)
+                # Extract general discussion points
+                discussion_points.append(f"{speaker} discussed: {message.strip()}")
 
-# Step 4: Train the Model
-def train_model(training_data):
-    # Convert to Hugging Face Dataset
-    dataset = Dataset.from_dict({'text': [item['text'] for item in training_data]})
+                # Capture start and end time
+                time = time_str
+                if not start_time:
+                    start_time = time
+                end_time = time
 
-    # Load GPT-2 tokenizer and model
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-    model = GPT2LMHeadModel.from_pretrained('gpt2')
+    # Simulated agenda extraction (customize based on your logic)
+    if "Linear Equations" in " ".join(discussion_points):
+        agenda_items.append("Linear Equations in Two Variables")
 
-    # Tokenize the dataset
-    tokenized_dataset = dataset.map(tokenize_function, batched=True)
+    return start_time, end_time, list(attendees), agenda_items, discussion_points
 
-    # Setup Training Arguments
-    training_args = TrainingArguments(
-        output_dir='./results',  # Output directory for the model
-        num_train_epochs=3,      # Number of epochs to train
-        per_device_train_batch_size=2,  # Training batch size
-        per_device_eval_batch_size=2,   # Evaluation batch size
-        logging_dir='./logs',    # Directory for logs
-        save_steps=1000,         # Save the model every 1000 steps
-    )
+# Step 2: Generate MOM content dynamically
+def generate_mom_content(start_time, end_time, attendees, agenda_items, discussion_points):
+    mom_content = {
+        "Meeting Information": {
+            "Date": "[Not provided in transcript]",
+            "Time": f"{start_time} to {end_time}" if start_time and end_time else "[Not provided in transcript]",
+            "Location": "[Not provided in transcript]",
+            "Attendees": ", ".join(attendees) if attendees else "[Not provided in transcript]"
+        },
+        "Agenda Items": agenda_items if agenda_items else ["[Not provided in transcript]"],
+        "Discussion Points": discussion_points if discussion_points else ["[Not provided in transcript]"],
+        "Decisions Made": "[Not provided in transcript]",
+        "Action Items": "[Not provided in transcript]",
+        "Next Meeting": "[Not provided in transcript]"
+    }
+    return mom_content
 
-    # Initialize Trainer
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=tokenized_dataset,
-    )
-
-    # Train the model
-    trainer.train()
-
-    return model, tokenizer
-
-# Step 5: Generate MOM for New Conversation
-def generate_mom_for_new_conversation(model, tokenizer, conversation_text):
-    inputs = tokenizer.encode(conversation_text, return_tensors="pt")
-    outputs = model.generate(inputs, max_length=500, num_return_sequences=1)
-    generated_mom = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return generated_mom
-
-# Step 6: Save the Generated MOM as a .docx File
-def save_mom_to_docx(mom_content, output_file):
+# Step 3: Create the MOM document
+def create_mom_docx(mom_content, output_file):
     document = Document()
-    document.add_heading('Minutes of Meeting', level=1)
-    document.add_paragraph(mom_content)
+    document.add_heading('Meeting Minutes', level=1)
+
+    # Add Meeting Information
+    document.add_heading('Meeting Information', level=2)
+    for key, value in mom_content["Meeting Information"].items():
+        document.add_paragraph(f"{key}: {value}")
+
+    # Add Agenda Items
+    document.add_heading('Agenda Items', level=2)
+    for item in mom_content["Agenda Items"]:
+        document.add_paragraph(item, style='List Bullet')
+
+    # Add Discussion Points
+    document.add_heading('Discussion Points', level=2)
+    for point in mom_content["Discussion Points"]:
+        document.add_paragraph(point, style='List Number')
+
+    # Add Decisions Made
+    document.add_heading('Decisions Made', level=2)
+    document.add_paragraph(mom_content["Decisions Made"])
+
+    # Add Action Items
+    document.add_heading('Action Items', level=2)
+    document.add_paragraph(mom_content["Action Items"])
+
+    # Add Next Meeting details
+    document.add_heading('Next Meeting', level=2)
+    document.add_paragraph(mom_content["Next Meeting"])
+
+    # Save the document
     document.save(output_file)
     print(f"MOM saved successfully as {output_file}")
 
 # Main execution
 if __name__ == "__main__":
-    conversation_file = '02-01-2025-15-34-05_transcription.txt'  # Path to your new conversation file
-    mom_file = 'MoM 1.docx'  # Path to your MoM document
+    # Input and output file paths
+    conversation_file = '02-01-2025-15-34-05_transcription.txt'
+    output_mom_file = 'Generated_MOM.docx'
 
-    # Extract MOM text from MoM 1.docx
-    mom_text = extract_text_from_docx(mom_file)
+    # Step 1: Parse the conversation file
+    start_time, end_time, attendees, agenda_items, discussion_points = parse_conversation_file(conversation_file)
 
-    # Create the training dataset
-    training_data = create_training_data(conversation_file, mom_text)
+    # Step 2: Generate MOM content dynamically
+    mom_content = generate_mom_content(start_time, end_time, attendees, agenda_items, discussion_points)
 
-    # Train the model
-    model, tokenizer = train_model(training_data)
-
-    # Read the conversation from the new conversation file
-    with open(conversation_file, 'r', encoding='utf-8') as file:
-        new_conversation = file.read()
-
-    # Generate the MOM
-    generated_mom = generate_mom_for_new_conversation(model, tokenizer, new_conversation)
-    print("\nGenerated MOM:\n", generated_mom)
-
-    # Save the generated MOM to a Word document
-    save_mom_to_docx(generated_mom, "Generated_MOM.docx")
+    # Step 3: Create and save the MOM document
+    create_mom_docx(mom_content, output_mom_file)
